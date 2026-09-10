@@ -4,6 +4,11 @@
 /*
  * Simon Says game in Verilog. Wokwi Simulation project:
  * https://wokwi.com/projects/408757730664700929
+ *
+ * ICS55 / OpenECOS port: the game logic advances only on cycles where `ena`
+ * is asserted, so the core can run from a fast system clock with a
+ * clock-enable prescaler instead of a dedicated 50 kHz clock. With `ena`
+ * tied high the behaviour is identical to the original Tiny Tapeout design.
  */
 
 `default_nettype none
@@ -11,13 +16,15 @@
 module simon (
     input wire clk,
     input wire rst,
+    input wire ena,                     // clock enable: one game tick per asserted cycle
     input wire [5:0] ticks_per_milli,
     input wire [3:0] btn,
     input wire segments_invert,
     output reg [3:0] led,
     output wire sound,
     output wire [6:0] segments,
-    output wire [1:0] segment_digits
+    output wire [1:0] segment_digits,
+    output wire [9:0] tone_freq   // current tone frequency in Hz (0 = silence)
 );
 
   localparam MAX_GAME_LEN = 100;  // Practically, 127, but we only have two digit score display
@@ -69,6 +76,7 @@ module simon (
   reg [9:0] millis_counter;
   reg [2:0] tone_sequence_counter;
   reg [9:0] sound_freq;
+  assign tone_freq = sound_freq;
 
   reg [1:0] user_input;
   reg [3:0] prev_btn;
@@ -80,6 +88,7 @@ module simon (
   sound_gen sound_gen_inst (
       .clk(clk),
       .rst(rst),
+      .ena(ena),
       .ticks_per_milli(ticks_per_milli),
       .freq(sound_freq),
       .sound(sound)
@@ -88,6 +97,7 @@ module simon (
   score score_inst (
       .clk(clk),
       .rst(rst | score_rst),
+      .tick(ena),
       .ena(score_ena),
       .inc(score_inc),
       .invert(segments_invert),
@@ -98,7 +108,7 @@ module simon (
   galois_lfsr lfsr_inst (
       .clk(clk),
       .rst(rst),
-      .enable(~lfsr_stopped || lfsr_cycles > 0),
+      .enable(ena && (~lfsr_stopped || lfsr_cycles > 0)),
       .load_enable(lfsr_rewind),
       .load_value(lfsr_capture),
       .lfsr_out(lfsr_value)
@@ -141,7 +151,7 @@ module simon (
       lfsr_capture <= 0;
       lfsr_stopped <= 0;
       lfsr_cycles <= 0;
-    end else begin
+    end else if (ena) begin
       tick_counter <= tick_counter + 1;
       score_inc <= 0;
       score_rst <= 0;

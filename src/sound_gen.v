@@ -1,6 +1,12 @@
+// SPDX-License-Identifier: Apache-2.0
+// SPDX-FileCopyrightText: © 2023-2024 Uri Shaked
+
+`default_nettype none
+
 module sound_gen (
     input wire clk,
     input wire rst,
+    input wire ena,
     input wire [5:0] ticks_per_milli,
     input wire [9:0] freq,
     output reg sound
@@ -13,6 +19,8 @@ module sound_gen (
     if (rst) begin
       tick_counter <= 0;
       sound <= 0;
+    end else if (!ena) begin
+      // hold state between ticks
     end else if (freq == 0) begin
       sound <= 0;
     end else begin
