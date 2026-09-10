@@ -1,0 +1,82 @@
+name: gds
+
+# Hardens the design on the ICS55 PDK with the OpenECOS Chip Compiler (ECC) and
+# publishes the ECOS Factory MPW deliverable (one GDS) together with the DEF,
+# gate-level netlist, LEF/LIB, reports and the ECC signoff package.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  harden:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cache ECC toolchain and ICS55 PDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/ecc
+            ~/.local/bin/ecc
+          key: ecc-toolchain-${{ hashFiles('scripts/install_ecc.sh', 'scripts/patch_ecc_lec.py') }}-v1
+      - name: Install ECC (Chip Compiler + OSS CAD Suite + ICS55 PDK)
+        run: scripts/install_ecc.sh
+      - name: Harden (rtl2gds)
+        run: scripts/harden.sh
+      - name: Upload deliverables (GDS, DEF, netlist, reports, signoff package)
+        uses: actions/upload-artifact@v4
+        with:
+          name: simon-mpw-gds
+          path: dist/
+      - name: Upload ECC workspace logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecc-logs
+          path: |
+            harden/default/log/
+            harden/default/*/log/
+            harden/default/*/report/
+            harden/status.txt
+
+  gl_test:
+    needs: harden
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Restore ECC toolchain and ICS55 PDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.local/share/ecc
+            ~/.local/bin/ecc
+          key: ecc-toolchain-${{ hashFiles('scripts/install_ecc.sh', 'scripts/patch_ecc_lec.py') }}-v1
+      - name: Install ECC (for the ICS55 cell models)
+        run: scripts/install_ecc.sh
+      - name: Install Icarus Verilog and cocotb
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends iverilog
+          pip install -r test/requirements.txt
+      - uses: actions/download-artifact@v4
+        with:
+          name: simon-mpw-gds
+          path: dist
+      - name: Gate-level simulation
+        run: |
+          cp dist/simon_mpw_top.v test/gate_level_netlist.v
+          make -C test -B GATES=yes
+      - name: Test summary
+        if: always()
+        uses: test-summary/action@v2
+        with:
+          paths: test/results.xml

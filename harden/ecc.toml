@@ -1,0 +1,30 @@
+# OpenECOS Chip Compiler project: Simon Says on a dedicated 1 mm x 1 mm ICS55 die
+# (ECOS Factory "MPW" template, minimum die size). Run with scripts/harden.sh.
+
+[design]
+name = "simon_mpw_top"
+top = "simon_mpw_top"
+rtl = ["rtl/filelist.f"]
+clock_port = "clk"
+frequency_mhz = 100.0
+
+[pdk]
+name = "ics55"
+root = ""
+
+[flow]
+preset = "rtl2gds"
+
+# Dedicated MPW die: fixed 1000 x 1000 um (the smallest MPW die offered).
+# The standard cells are kept in a compact 120 x 120 um core in the middle of
+# the die (large core margins); ECC's timing optimiser (Sizer) crashes when
+# the ~1600 cells are spread over the full square millimetre.
+[params.floorplan]
+core_margin = [440, 440]
+
+[params.floorplan.die_builder]
+mode = "die_size"
+
+[params.floorplan.die_builder.die_size]
+width_micron = 1000.0
+height_micron = 1000.0

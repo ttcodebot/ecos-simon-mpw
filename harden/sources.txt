@@ -1,0 +1,11 @@
+# RTL sources (repository-relative) staged into harden/rtl/ by scripts/harden.sh
+src/simon.v
+src/sound_gen.v
+src/score.v
+src/galois_lfsr.v
+src/simon_tick_gen.v
+src/inverter.v
+src/clock_divider_stage.v
+src/ring_osc.v
+src/simon_game.v
+src/simon_mpw_top.v

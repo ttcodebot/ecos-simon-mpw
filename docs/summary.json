@@ -1,0 +1,131 @@
+{
+  "die_area_um2": 1000000.0,
+  "core_area_um2": 14280.0,
+  "core_utilization_pct": 23.0,
+  "stdcell_area_um2": 3770.0,
+  "instances": 1810,
+  "sequential_cells": 196,
+  "combinational_cells": 1359,
+  "io_pins": 26,
+  "target_clock_period_ns": 10.0,
+  "fmax_mhz": 432.0,
+  "setup_wns_ns": 7.68,
+  "hold_wns_ns": 0.09,
+  "routed_wirelength_um": 34716.81,
+  "total_power_mw": 0.23,
+  "drc_status": "CLEAN (0 violations)",
+  "lvs_status": "MATCHED (Clean)",
+  "runtime": "23m 20s",
+  "timing_corners": [
+    {
+      "corner": "MAX_125/Cworst",
+      "setup_wns_ns": 7.68,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.27,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "MAX_125/RCworst",
+      "setup_wns_ns": 7.79,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.27,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "WCL_m40/Cworst",
+      "setup_wns_ns": 7.74,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.27,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "WCL_m40/RCworst",
+      "setup_wns_ns": 7.84,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.26,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "TYP_25/TYPICAL",
+      "setup_wns_ns": 8.8,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.15,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "MIN_m40/Cworst",
+      "setup_wns_ns": 9.21,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.09,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "MIN_m40/RCworst",
+      "setup_wns_ns": 9.24,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.09,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "MIN_m40/Cbest",
+      "setup_wns_ns": 9.25,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.09,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "MIN_m40/RCbest",
+      "setup_wns_ns": 9.23,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.09,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "ML_125/Cworst",
+      "setup_wns_ns": 9.11,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.1,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "ML_125/RCworst",
+      "setup_wns_ns": 9.14,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.1,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "ML_125/Cbest",
+      "setup_wns_ns": 9.15,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.1,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    },
+    {
+      "corner": "ML_125/RCbest",
+      "setup_wns_ns": 9.13,
+      "setup_tns_ns": 0.0,
+      "hold_wns_ns": 0.1,
+      "hold_tns_ns": 0.0,
+      "status": "PASS"
+    }
+  ],
+  "die": {
+    "die_width": 1000.0,
+    "die_height": 1000.0
+  },
+  "qor_score": 49.4,
+  "design": "simon_mpw_top"
+}

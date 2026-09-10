@@ -1,0 +1,44 @@
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Verilator
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends verilator
+      - name: Lint RTL
+        run: |
+          verilator --lint-only -Wall -Wno-DECLFILENAME -Wno-UNUSEDSIGNAL --top-module simon_mpw_top \
+            src/simon.v src/sound_gen.v src/score.v src/galois_lfsr.v src/simon_tick_gen.v \
+            src/inverter.v src/clock_divider_stage.v src/ring_osc.v src/simon_game.v src/simon_mpw_top.v
+
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Icarus Verilog
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends iverilog
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install cocotb
+        run: pip install -r test/requirements.txt
+      - name: Run RTL simulation
+        run: make -C test -B
+      - name: Test summary
+        if: always()
+        uses: test-summary/action@v2
+        with:
+          paths: test/results.xml
+      - name: Upload waveform
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtl-waveform
+          path: test/tb.vcd
