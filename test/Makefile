@@ -1,44 +1,44 @@
-# Makefile
+# cocotb testbench for the Simon Says MPW top level (RTL and gate level).
 # See https://docs.cocotb.org/en/stable/quickstart.html for more info
 
-# defaults
 SIM ?= icarus
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = clock_divider_stage.v galois_lfsr.v inverter.v ring_osc.v project.v score.v simon.v sound_gen.v
+PROJECT_SOURCES = simon.v sound_gen.v score.v galois_lfsr.v simon_tick_gen.v simon_game.v inverter.v ring_osc.v clock_divider_stage.v simon_mpw_top.v
 
 ifneq ($(GATES),yes)
 
 # RTL simulation:
-SIM_BUILD				= sim_build/rtl
+SIM_BUILD = sim_build/rtl
 VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
 
 else
 
-# Gate level simulation:
-SIM_BUILD				= sim_build/gl
-COMPILE_ARGS    += -DGL_TEST
-COMPILE_ARGS    += -DFUNCTIONAL
-COMPILE_ARGS    += -DUSE_POWER_PINS
-COMPILE_ARGS    += -DSIM
-COMPILE_ARGS    += -DUNIT_DELAY=\#1
-VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/primitives.v
-VERILOG_SOURCES += $(PDK_ROOT)/sky130A/libs.ref/sky130_fd_sc_hd/verilog/sky130_fd_sc_hd.v
+# Gate level simulation of the ECC (ICS55) netlist:
+SIM_BUILD = sim_build/gl
+COMPILE_ARGS += -DGL_TEST -Dfunctional
+ICS55_STDCELL ?= $(shell $(PWD)/../scripts/pdk_path.sh stdcell)
+VERILOG_SOURCES += $(ICS55_STDCELL)/ics55_LLSC_H7CR/verilog/ics55_LLSC_H7CR.v
+VERILOG_SOURCES += $(ICS55_STDCELL)/ics55_LLSC_H7CL/verilog/ics55_LLSC_H7CL.v
+# copied in by scripts/harden.sh (dist/<design>.v)
+ICS55_MODELS = $(ICS55_STDCELL)/ics55_LLSC_H7CR/verilog/ics55_LLSC_H7CR.v $(ICS55_STDCELL)/ics55_LLSC_H7CL/verilog/ics55_LLSC_H7CL.v
+# the ECC netlist has split vector ports: wrap it with the RTL port list
+VERILOG_SOURCES += $(PWD)/gate_level_netlist_renamed.v $(PWD)/gl_wrapper.v
+# filler / tap / decap cells have no simulation models: stub them
+VERILOG_SOURCES += $(PWD)/gl_stubs.v
+# gate-level simulation: the full game suite runs in a few minutes with Icarus
 
-# this gets copied in by the GDS action workflow
-VERILOG_SOURCES += $(PWD)/gate_level_netlist.v
 
 endif
 
-# Allow sharing configuration between design and testbench via `include`:
-COMPILE_ARGS 		+= -I$(SRC_DIR)
-
-# Include the testbench sources:
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
-
-# List test modules to run, separated by commas and without the .py suffix:
 COCOTB_TEST_MODULES = test
 
-# include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# rule must follow the cocotb include so that `sim` stays the default goal
+$(PWD)/gl_stubs.v: $(PWD)/gate_level_netlist.v
+	python3 $(PWD)/../scripts/gl_stubs.py $< $@ $(ICS55_MODELS)
+$(PWD)/gate_level_netlist_renamed.v $(PWD)/gl_wrapper.v: $(PWD)/gate_level_netlist.v
+	python3 $(PWD)/../scripts/gl_wrapper.py $< $(SRC_DIR)/simon_mpw_top.v simon_mpw_top $(PWD)

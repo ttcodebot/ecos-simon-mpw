@@ -1,60 +1,48 @@
 `default_nettype none
 `timescale 1ns / 1ps
 
-/* This testbench just instantiates the module and makes some convenient wires
-   that can be driven / tested by the cocotb test.py.
-*/
+// Testbench wrapper for the simon_game core (RTL and gate-level). Exposes the
+// same signal names the original Tiny Tapeout cocotb tests used.
 module tb ();
 
-  // Dump the signals to a VCD file. You can view it with gtkwave.
-  `ifndef NO_VCD
+`ifndef NO_VCD
   initial begin
     $dumpfile("tb.vcd");
     $dumpvars(0, tb);
     #1;
   end
-  `endif
+`endif
 
-  // inputs from testbench
-  reg [3:0] btn;
-  reg seginv;
-
-  // Wire up the inputs and outputs:
   reg clk;
   reg rst_n;
   reg ena;
-  wire [7:0] ui_in = {3'b000, seginv, btn};
-  wire [7:0] uio_in;
-  wire [7:0] uo_out;
-  wire [7:0] uio_out;
-  wire [7:0] uio_oe;
-`ifdef GL_TEST
-  wire VPWR = 1'b1;
-  wire VGND = 1'b0;
-`endif
+  reg [3:0] btn;
+  reg seginv;
+  reg [2:0] clk_sel;
+  wire [3:0] led;
+  wire speaker;
+  wire [6:0] seg;
+  wire [1:0] dig;
+  wire tick;
+  wire rosc_out;
+  wire dig1 = dig[0];
+  wire dig2 = dig[1];
 
-  wire [3:0] led = uo_out[3:0];
-  wire speaker = uo_out[4];
-  wire dig1 = uo_out[5];
-  wire dig2 = uo_out[6];
-  wire [6:0] seg = uio_out[6:0] & uio_oe[6:0];
 
-  tt_um_urish_simon user_project (
-
-      // Include power ports for the Gate Level test:
-`ifdef GL_TEST
-      .VPWR(VPWR),
-      .VGND(VGND),
-`endif
-
-      .ui_in  (ui_in),    // Dedicated inputs
-      .uo_out (uo_out),   // Dedicated outputs
-      .uio_in (uio_in),   // IOs: Input path
-      .uio_out(uio_out),  // IOs: Output path
-      .uio_oe (uio_oe),   // IOs: Enable path (active high: 0=input, 1=output)
-      .ena    (ena),      // enable - goes high when design is selected
-      .clk    (clk),      // clock
-      .rst_n  (rst_n)     // not reset
+  simon_mpw_top #(.RING_OSC(0)) dut (
+      .clk(clk),
+      .rst_n(rst_n),
+      .btn(btn),
+      .seginv(seginv),
+      .clk_sel(clk_sel),
+      .led(led),
+      .speaker(speaker),
+      .seg(seg),
+      .dig(dig),
+      .tick(tick),
+      .rosc_out(rosc_out)
   );
+
+  initial clk_sel = 3'd0;
 
 endmodule

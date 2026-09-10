@@ -89,7 +89,7 @@ class SimonDriver:
 @cocotb.test()
 async def test_simon(dut):
     dut._log.info("start")
-    clock = Clock(dut.clk, 20, unit="us")  # 50 kHz clock
+    clock = Clock(dut.clk, 20, unit="us")  # 50 kHz clock (clk_sel=0: tick every cycle)
     ticks_per_ms = 50  # Clock ticks per millisecond (at 50 kHz)
     cocotb.start_soon(clock.start())
 
@@ -97,8 +97,7 @@ async def test_simon(dut):
 
     # Reset
     dut._log.info("Reset")
-    dut.ena.value = 1
-    dut.uio_in.value = 0
+    dut.clk_sel.value = 0
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 100)
     dut.rst_n.value = 1
@@ -145,7 +144,7 @@ async def test_simon(dut):
 @cocotb.test()
 async def test_long_game_sequence(dut):
     dut._log.info("Start")
-    clock = Clock(dut.clk, 20, unit="us")  # 50 kHz clock
+    clock = Clock(dut.clk, 20, unit="us")  # 50 kHz clock (clk_sel=0: tick every cycle)
     ticks_per_ms = 50  # Clock ticks per millisecond (at 50 kHz)
     cocotb.start_soon(clock.start())
 
@@ -153,8 +152,7 @@ async def test_long_game_sequence(dut):
 
     # Reset
     dut._log.info("Reset")
-    dut.ena.value = 1
-    dut.uio_in.value = 0
+    dut.clk_sel.value = 0
     dut.rst_n.value = 0
     await ClockCycles(dut.clk, 100)
     dut.rst_n.value = 1
@@ -209,15 +207,14 @@ async def test_long_game_sequence(dut):
 @cocotb.test(skip=True)
 async def test_pseudo_randomness(dut):
     dut._log.info("start")
-    clock = Clock(dut.clk, 20, unit="us")  # 50 kHz clock
+    clock = Clock(dut.clk, 20, unit="us")  # 50 kHz clock (clk_sel=0: tick every cycle)
     ticks_per_ms = 50  # Clock ticks per millisecond (at 50 kHz)
     cocotb.start_soon(clock.start())
 
     simon = SimonDriver(dut, dut.clk)
 
     # Reset
-    dut.ena.value = 1
-    dut.uio_in.value = 0
+    dut.clk_sel.value = 0
 
     led_bins = [0, 0, 0, 0]
 
